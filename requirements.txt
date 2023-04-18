@@ -1,2 +1,7 @@
 nltk==3.8.1
-
+numpy==1.23.5
+scikit_learn==1.2.2
+sentence_transformers==2.2.2
+spacy==3.5.2
+transformers==4.28.1
+en-core-web-lg @ https://github.com/explosion/spacy-models/releases/download/en_core_web_lg-3.5.0/en_core_web_lg-3.5.0-py3-none-any.whl
