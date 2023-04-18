@@ -19,13 +19,9 @@ Original file is located at
 ## Importing Libraries
 """
 
-import tensorflow as tf
-import tensorflow_hub as hub
-from sklearn import linear_model
 import pickle
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
-from sklearn.cluster import KMeans
 import nltk
 import ssl
 import os
@@ -46,12 +42,10 @@ nltk.download('omw-1.4',quiet=True)
 
 #!pip --quiet install -U sentence-transformers
 from sentence_transformers import SentenceTransformer,CrossEncoder
-import pandas as pd
 
 #!pip install transformers
 
 from transformers import pipeline
-from transformers import AutoTokenizer, AutoModelForMaskedLM
 
 #!python -m spacy download en_core_web_lg
 import spacy
