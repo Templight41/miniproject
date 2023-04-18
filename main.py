@@ -1,11 +1,4 @@
 from flask import Flask
-
-app = Flask(__name__)
-
-@app.route('/', methods=['GET'])
-def home():
-    return descAnswerEval("An OOP is a modular approach, which allows data to be applied on stipulated program area. It is a feature to develop productive emphasis on data . It also provides the reusability logic","Object-oriented programming (OOP) is a computer programming model that organizes software design around data, or objects, rather than functions and logic. It follows the bottom-up approach.")
-
 # -*- coding: utf-8 -*-
 """MiniProjDescAns
 
@@ -200,6 +193,14 @@ def finalMarks(li):
 
 def descAnswerEval(ans,key):
     return finalMarks([sbert_cross(ans,key),roberta(ans),keyword_scoring(ans,key)])
+
+
+app = Flask(__name__)
+
+@app.route('/', methods=['GET'])
+def home():
+    return str(descAnswerEval("An OOP is a modular approach, which allows data to be applied on stipulated program area. It is a feature to develop productive emphasis on data . It also provides the reusability logic","Object-oriented programming (OOP) is a computer programming model that organizes software design around data, or objects, rather than functions and logic. It follows the bottom-up approach."))
+
 
 
 if (__name__ == '__main__'):
