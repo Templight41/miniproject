@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask,request
 # -*- coding: utf-8 -*-
 """MiniProjDescAns
 
@@ -199,7 +199,9 @@ app = Flask(__name__)
 
 @app.route('/', methods=['GET'])
 def home():
-    return str(descAnswerEval("An OOP is a modular approach, which allows data to be applied on stipulated program area. It is a feature to develop productive emphasis on data . It also provides the reusability logic","Object-oriented programming (OOP) is a computer programming model that organizes software design around data, or objects, rather than functions and logic. It follows the bottom-up approach."))
+    expected = request.args.get('expected')
+    answer = request.args.get('answer')
+    return str(descAnswerEval(expected,answer))
 
 
 
