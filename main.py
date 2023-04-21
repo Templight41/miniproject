@@ -1,4 +1,4 @@
-from flask import Flask,request
+from flask import Flask,request,jsonify
 # -*- coding: utf-8 -*-
 """MiniProjDescAns
 
@@ -201,7 +201,7 @@ app = Flask(__name__)
 def home():
     expected = request.args.get('expected')
     answer = request.args.get('answer')
-    return str(descAnswerEval(expected,answer))
+    return jsonify({'score':str(descAnswerEval(expected,answer))})
 
 
 
