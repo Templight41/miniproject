@@ -1,4 +1,3 @@
-from flask import Flask,request,jsonify
 # -*- coding: utf-8 -*-
 """MiniProjDescAns
 
@@ -12,37 +11,25 @@ Original file is located at
 ## Importing Libraries
 """
 
+import re
 import pickle
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
+import re
 import nltk
-import ssl
-import os
-os.environ["TOKENIZERS_PARALLELISM"] = "false"
-
-try:
-    _create_unverified_https_context = ssl._create_unverified_context
-except AttributeError:
-    pass
-else:
-    ssl._create_default_https_context = _create_unverified_https_context
-
-#nltk.download()
 nltk.download('stopwords',quiet=True)
 nltk.download('wordnet',quiet=True)
 nltk.download('punkt',quiet=True)
 nltk.download('omw-1.4',quiet=True)
 
-#!pip --quiet install -U sentence-transformers
+
 from sentence_transformers import SentenceTransformer,CrossEncoder
 
-#!pip install transformers
+
 
 from transformers import pipeline
 
-#!python -m spacy download en_core_web_lg
 import spacy
-nlp = spacy.load("en_core_web_lg")
 
 """## Cosine-Similarity Function - cos_sim(emb1,emb2)
 ### Calculates cos-sim between 2 columns of embeddings
@@ -99,11 +86,11 @@ def extract_POS(sample_doc):
 def matching_keywords(stdlst,keylst):
         #matched list
         res=[]
-        #unmatched list
-        tmpres=[]
         for x in stdlst:
-            if (x in keylst):
-                res.append(x)
+            # res += list(set([key for key in keylst if re.search(x, key)]))
+            for key in keylst:
+                if(re.search(re.escape(x),re.escape(key))):
+                    res.append(key)
         return res
 
 def dictionary_with_weights(words):
@@ -162,7 +149,7 @@ def keyword_scoring(stud_ans,ans_key):
   if(type(stud_ans)==float):
     stud_ans=str(stud_ans)
 
-
+  print(keywords_scores)
   stud_doc=nlp(stud_ans) 
   std_POS=extract_POS(stud_doc)
   #then apply match function
@@ -193,7 +180,6 @@ def finalMarks(li):
 
 def descAnswerEval(ans,key):
     return finalMarks([sbert_cross(ans,key),roberta(ans),keyword_scoring(ans,key)])
-
 
 app = Flask(__name__)
 
