@@ -1,4 +1,5 @@
 from flask import Flask,request,jsonify
+
 # -*- coding: utf-8 -*-
 """MiniProj_DescAnsFinal
 
@@ -16,7 +17,6 @@ import re
 import pickle
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
-from sklearn.cluster import KMeans
 import re
 import nltk
 nltk.download('stopwords',quiet=True)
@@ -25,10 +25,10 @@ nltk.download('punkt',quiet=True)
 nltk.download('omw-1.4',quiet=True)
 
 from sentence_transformers import SentenceTransformer,CrossEncoder
-import pandas as pd
 
 
 from transformers import pipeline
+
 import spacy
 
 """## Cosine-Similarity Function - cos_sim(emb1,emb2)
@@ -78,7 +78,7 @@ def extract_POS(sample_doc):
     for chk in sample_doc.noun_chunks:
         tmp=""
         for tkn in chk:
-            if (tkn.pos_ in ['NOUN','PROPN','ADJ'] ):
+            if (tkn.pos_ in ['NOUN','PROPN','VERB','ADJ'] ):
                 if (not(tkn.is_stop) and not(tkn.is_punct)):
                     tmp = tmp + tkn.text.lower() + " "
         if(tmp.strip()!=""):
@@ -113,6 +113,7 @@ def dictionary_with_weights(words):
           categorized_words['9'].append(word)
       elif pos == 'PROPN':
           categorized_words['8.5'].append(word)
+      
       elif pos == 'ADJ':
           categorized_words['5'].append(word)
   return categorized_words
@@ -123,16 +124,17 @@ def keyword_scoring(stud_ans,ans_key):
 
   ans_doc=nlp(ans_key)
   key_POS=extract_POS(ans_doc)
-  
+  if(len(key_POS)==0):
+      key_POS=["NOKEYW"]
 
   model = SentenceTransformer('distilbert-base-nli-mean-tokens')
   doc_embedding = model.encode([ans_key])
   candidate_embeddings = model.encode(key_POS)
+
   top_n = 7
   distances = cosine_similarity(doc_embedding, candidate_embeddings)
   keywords = [key_POS[index] for index in distances.argsort()[0][-top_n:]]
   keywords_scores = dictionary_with_weights(keywords)
-  
 
   total=0
   count=0
@@ -146,16 +148,18 @@ def keyword_scoring(stud_ans,ans_key):
     count+=1
   total=total+count*8.5
 
+  
+
   count=0
   for i in keywords_scores['5']:
     count+=1
   total=total+count*5
 
-  
+  if total==0:
+      total=1
   if(type(stud_ans)==float):
     stud_ans=str(stud_ans)
 
-  print(keywords_scores)
   stud_doc=nlp(stud_ans) 
   std_POS=extract_POS(stud_doc)
   #then apply match function
@@ -167,6 +171,7 @@ def keyword_scoring(stud_ans,ans_key):
       stud_score=stud_score+9
     elif i in keywords_scores['8.5']:
       stud_score=stud_score+8.5
+    
     elif i in keywords_scores['5']:
       stud_score=stud_score+5 
   score=stud_score/total
@@ -178,17 +183,17 @@ def keyword_scoring(stud_ans,ans_key):
 #any permuation and combination will work
 def finalMarks1(li):
     out_of = 7
+    print(li)
     regressor={"lr7":"LinReg7.pickle","rf7":"RandomForest7.pickle","xgb7":"XGBoost7.pickle",
            "lr5":"LinReg5.pickle","rf5":"RandomForest5.pickle","xgb5":"XGBoost5.pickle",
            "lr3":"LinReg3.pickle","rf3":"RandomForest3.pickle","xgb3":"XGBoost7.pickle"}
 
     loaded_model = pickle.load(open(regressor['rf'+str(out_of)],'rb')) 
     x=loaded_model.predict([li])
-    np.round(x)
+    np.ceil(x)
     x=x.clip(0,out_of)
     x=int(x)
     print(x,f"out of {out_of}")
-    print(x)
     return x
 
 #this version takes the marks out of 7 and converts it to out of 3
@@ -234,14 +239,19 @@ def finalMarks3(li):
 def descAnswerEval(ans,key):
     return finalMarks1([sbert_cross(ans,key),roberta(ans),keyword_scoring(ans,key)])
 
-
 app = Flask(__name__)
 
-@app.route('/', methods=['GET'])
+@app.route('/', methods=['GET','POST'])
 def home():
-    expected = "Object-oriented programming (OOP) is a computer programming model that organizes software design around data, or objects, rather than functions and logic. It follows the bottom-up approach."
-    answer = "oop orgnizes a program around its dala (objects) and interfaces at that data. it's also defined as data controlling access code."
-    return jsonify({'score':str(descAnswerEval(expected,answer))})
+    if request.method == 'POST':
+        data = request.json
+        expected = data['expected']
+        answer = data['answer']
+        print(expected)
+        print(answer)
+        return jsonify({'score':str(descAnswerEval(expected,answer))})
+    else:
+        return "This is Get Request"
 
 
 
